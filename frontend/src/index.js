@@ -1,22 +1,20 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import App from './App';
-import AppProvider from './context/AppContext'; // default export, as per earlier context changes
+import { AppProvider } from './context/AppContext';
 
 // MUI Imports
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-const theme = createTheme(); // Default MUI theme
+const theme = createTheme(); // Using the default theme
 
-const container = document.getElementById('root');
-const root = createRoot(container);
-
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <AppProvider>
       <ThemeProvider theme={theme}>
-        <CssBaseline />
+        <CssBaseline /> {/* A simple baseline stylesheet */}
         <App />
       </ThemeProvider>
     </AppProvider>
