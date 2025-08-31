@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "generated_on": "2025-08-31T06:08:46.986748Z",
+    "source_file": "market_trends.json"
+  },
+  "asset_stats": {
+    "equities": {
+      "first_date": "2015-09-03",
+      "last_date": "2025-08-29",
+      "last_price": 59.55,
+      "num_observations": 2607,
+      "cagr_percent": -5.24,
+      "avg_annual_return_percent": -0.22,
+      "annual_volatility_percent": 31.16,
+      "sharpe_ratio": -0.119,
+      "max_drawdown_percent": -79.74,
+      "max_drawdown_date": "2020-09-24",
+      "best_year_return_percent": 61.28,
+      "worst_year_return_percent": -51.36
+    },
+    "bonds": {
+      "first_date": "2015-09-03",
+      "last_date": "2025-08-29",
+      "last_price": 159.01,
+      "num_observations": 2607,
+      "cagr_percent": 4.79,
+      "avg_annual_return_percent": 5.16,
+      "annual_volatility_percent": 10.11,
+      "sharpe_ratio": 0.164,
+      "max_drawdown_percent": -29.1,
+      "max_drawdown_date": "2023-11-22",
+      "best_year_return_percent": 16.38,
+      "worst_year_return_percent": -11.21
+    },
+    "crypto": {
+      "first_date": "2015-09-03",
+      "last_date": "2025-08-29",
+      "last_price": 361.21,
+      "num_observations": 2607,
+      "cagr_percent": 12.92,
+      "avg_annual_return_percent": 80.59,
+      "annual_volatility_percent": 96.17,
+      "sharpe_ratio": 0.802,
+      "max_drawdown_percent": -98.67,
+      "max_drawdown_date": "2020-11-23",
+      "best_year_return_percent": 149.66,
+      "worst_year_return_percent": -95.44
+    },
+    "commodities": {
+      "first_date": "2015-09-03",
+      "last_date": "2025-08-29",
+      "last_price": 104.34,
+      "num_observations": 2607,
+      "cagr_percent": 0.5,
+      "avg_annual_return_percent": 2.09,
+      "annual_volatility_percent": 17.76,
+      "sharpe_ratio": -0.079,
+      "max_drawdown_percent": -55.41,
+      "max_drawdown_date": "2021-06-14",
+      "best_year_return_percent": 32.73,
+      "worst_year_return_percent": -47.22
+    }
+  },
+  "correlations": {
+    "equities": {
+      "equities": 1.0,
+      "bonds": 0.1319,
+      "crypto": 0.0859,
+      "commodities": 0.0321
+    },
+    "bonds": {
+      "equities": 0.1319,
+      "bonds": 1.0,
+      "crypto": -0.0131,
+      "commodities": -0.0434
+    },
+    "crypto": {
+      "equities": 0.0859,
+      "bonds": -0.0131,
+      "crypto": 1.0,
+      "commodities": 0.008
+    },
+    "commodities": {
+      "equities": 0.0321,
+      "bonds": -0.0434,
+      "crypto": 0.008,
+      "commodities": 1.0
+    }
+  }
+}
