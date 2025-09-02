@@ -5,16 +5,54 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from google.api_core.exceptions import ResourceExhausted
 
 # Load environment variables from .env file
 load_dotenv()
 
-# --- Initialize the Gemini LLM ---
-llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash-latest",
-    temperature=0.7,
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
+# --- NEW: API Key Management ---
+# Load all keys from the .env file and split them into a list
+API_KEYS = os.getenv("GOOGLE_API_KEYS", "").split(',')
+if not all(API_KEYS) or API_KEYS == ['']:
+    raise ValueError("GOOGLE_API_KEYS environment variable not set or is empty. Please check your .env file.")
+
+# --- NEW: Resilient LLM Invoker with Key Cycling ---
+async def invoke_llm_with_retry(prompt_template, input_data):
+    """
+    Tries to invoke a LangChain chain with a list of API keys.
+    If a key is rate-limited (ResourceExhausted), it automatically retries with the next key.
+    """
+    for i, key in enumerate(API_KEYS):
+        try:
+            # Initialize a new LLM instance with the current key for this specific call
+            llm = ChatGoogleGenerativeAI(
+                model="gemini-1.5-flash-latest",
+                temperature=0.7,
+                google_api_key=key
+            )
+            
+            # Build the full chain using the prompt and the new LLM instance
+            chain = prompt_template | llm | StrOutputParser()
+            
+            print(f"--- Attempting API call with Key #{i + 1} ---")
+            response = await chain.ainvoke(input_data)
+            print(f"--- Key #{i + 1} succeeded. ---")
+            return response # Success, so we return the response
+
+        except ResourceExhausted:
+            print(f"Warning: API Key #{i + 1} is rate-limited or exhausted. Trying next key...")
+            if i == len(API_KEYS) - 1: # If this was the last key in the list
+                print("Error: All API keys are exhausted.")
+                raise # Re-raise the final exception if all keys have failed
+        except Exception as e:
+            # Handle other potential errors (e.g., an invalid key format)
+            print(f"An unexpected error occurred with Key #{i + 1}: {e}")
+            if i == len(API_KEYS) - 1:
+                raise
+    
+    # This line should ideally not be reached, but is a fallback.
+    raise Exception("All API keys failed to generate a response.")
+
 
 # --- Agent 1: The Analyst ---
 analyst_template = """
@@ -40,7 +78,6 @@ analyst_prompt = PromptTemplate(
     template=analyst_template,
     input_variables=["user_data", "market_stats"]
 )
-analyst_chain = analyst_prompt | llm | StrOutputParser()
 
 # --- Agent 2: The Strategist ---
 strategist_template = """
@@ -62,7 +99,6 @@ strategist_prompt = PromptTemplate(
     template=strategist_template,
     input_variables=["analyst_summary"]
 )
-strategist_chain = strategist_prompt | llm | StrOutputParser()
 
 # --- Agent 3: The Writer ---
 writer_template = """
@@ -98,15 +134,21 @@ writer_prompt = PromptTemplate(
     template=writer_template,
     input_variables=["user_data", "strategies"]
 )
-writer_chain = writer_prompt | llm | StrOutputParser()
 
 # --- The AI Assembly Line Chain ---
 async def generate_plan_with_assembly_line(user_profile: dict):
     with open("market_stats.json", "r") as f:
         market_stats = json.load(f)
-    analyst_summary = await analyst_chain.ainvoke({"user_data": json.dumps(user_profile), "market_stats": json.dumps(market_stats)})
-    strategies = await strategist_chain.ainvoke({"analyst_summary": analyst_summary})
-    final_plan_str = await writer_chain.ainvoke({"user_data": json.dumps(user_profile), "strategies": strategies})
+
+    analyst_input = {"user_data": json.dumps(user_profile), "market_stats": json.dumps(market_stats)}
+    analyst_summary = await invoke_llm_with_retry(analyst_prompt, analyst_input)
+
+    strategist_input = {"analyst_summary": analyst_summary}
+    strategies = await invoke_llm_with_retry(strategist_prompt, strategist_input)
+
+    writer_input = {"user_data": json.dumps(user_profile), "strategies": strategies}
+    final_plan_str = await invoke_llm_with_retry(writer_prompt, writer_input)
+    
     return final_plan_str
 
 # --- Agent 4: The Economic Forecaster ---
@@ -141,35 +183,37 @@ The JSON object should follow this exact structure:
 }}
 """
 forecaster_prompt = PromptTemplate.from_template(forecaster_template)
-forecaster_chain = forecaster_prompt | llm | StrOutputParser()
 
-# --- CORRECTED Financial Calculation Logic ---
 def project_goal_timeline(target_amount, initial_investment, monthly_contribution, annual_return_rate):
     if monthly_contribution <= 0 and initial_investment < target_amount:
-        return float('inf') # Goal is unreachable if no money is being added
+        return float('inf')
 
-    # If return rate is zero or negative, calculate as simple savings
     if annual_return_rate <= 0:
+        if monthly_contribution <= 0:
+            return float('inf')
         return (target_amount - initial_investment) / (monthly_contribution * 12)
 
     monthly_rate = (1 + annual_return_rate) ** (1/12) - 1
     
+    if abs(monthly_rate) < 1e-9:
+        if monthly_contribution <= 0:
+            return float('inf')
+        return (target_amount - initial_investment) / (monthly_contribution * 12)
+
     current_value = float(initial_investment)
     months = 0
     while current_value < target_amount:
-        # Interest is earned on the current balance
         interest = current_value * monthly_rate
-        # Then the new contribution is added
         current_value += interest + monthly_contribution
         months += 1
-        # Prevent infinite loops for unreachable goals
-        if months > 1200: # 100 years
+        if months > 1200:
             return float('inf')
             
     return round(months / 12, 1)
 
 async def run_economic_forecaster(user_profile: dict):
-    scenarios_str = await forecaster_chain.ainvoke({})
+    scenarios_str = await invoke_llm_with_retry(forecaster_prompt, {})
+    
     start_index = scenarios_str.find('{')
     end_index = scenarios_str.rfind('}') + 1
     json_str = scenarios_str[start_index:end_index]
@@ -218,13 +262,13 @@ Based on all of this context, answer the user's question.
 *YOUR ANSWER:*
 """
 qa_prompt = PromptTemplate.from_template(qa_template)
-qa_chain = qa_prompt | llm | StrOutputParser()
 
 async def run_qa_agent(payload: dict):
-    answer = await qa_chain.ainvoke({
+    qa_input = {
         "user_profile": json.dumps(payload['userProfile']),
         "generated_plan": json.dumps(payload['generatedPlan']),
         "chat_history": json.dumps(payload['chatHistory']),
         "new_question": payload['newQuestion']
-    })
+    }
+    answer = await invoke_llm_with_retry(qa_prompt, qa_input)
     return {"response": answer}
