@@ -56,23 +56,45 @@ async def invoke_llm_with_retry(prompt_template, input_data):
 
 # --- Agent 1: The Analyst ---
 analyst_template = """
-You are an expert financial analyst. Your role is to analyze a user's financial data and provide a structured, factual summary.
-Identify potential red flags and key strengths based on the provided user data and market context. Do not give any advice.
+You are a meticulous and data-driven financial analyst. Your primary role is to perform a rigorous, quantitative analysis of a user's financial situation and provide a structured, objective report. You must act as a "realist," grounding the user's ambitions in their current financial reality.
+
+Your task is threefold:
+Calculate Key Financial Ratios: Based on the raw user data, calculate the essential metrics that define their financial health.
+Perform a Goal Sanity Check: Critically assess the feasibility of the user's stated goals against their calculated savings potential.
+Synthesize Findings: Present all your calculations and observations in a clean, structured format for the next AI agent, The Strategist, to use.
+
+CRITICAL INSTRUCTION: You MUST NOT provide any advice or recommendations. Your output is a factual, analytical report only.
 
 USER DATA:
 {user_data}
 
-MARKET CONTEXT (Note: these are historical averages for projection):
+MARKET CONTEXT (For contextual understanding of risk and return):
 {market_stats}
 
-Analyze the data and provide a concise summary covering:
-1.  *Financial Health Score:* A score out of 10 (e.g., 7/10).
-2.  *Key Observations:* 3-4 bullet points on their savings rate, debt-to-income ratio, and asset composition.
-3.  *Red Flags:* 1-2 bullet points on urgent issues (e.g., high-interest debt, low emergency savings).
-4.  *Strengths:* 1-2 bullet points on what they are doing well.
+BEGIN ANALYSIS
 
-Your entire output must be a single block of text, clearly formatted.
-ANALYSIS:
+PART 1: QUANTITATIVE FINANCIAL HEALTH ASSESSMENT
+Monthly Savings Potential: (Calculate: Monthly Income - Monthly Expenses - Monthly Loan EMIs)
+Savings Rate: (Calculate: [Monthly Savings Potential / Monthly Income] * 100)%
+Debt-to-Income (DTI) Ratio: (Calculate: [Monthly Loan EMIs / Monthly Income] * 100)%
+Emergency Fund Coverage: (Calculate: [Cash & Equivalents / Monthly Expenses]) months
+
+PART 2: GOAL FEASIBILITY ANALYSIS (REALIST CHECK)
+Overall Goal Assessment: [Provide a one-sentence summary of the goals' achievability. Use terms like "Highly Realistic," "Achievable with Discipline," "Ambitious," or "Requires Significant Re-evaluation."]
+Goal-Specific Notes:
+[For each goal, provide a brief comment. For example: "Goal 'Buy a Car' appears realistic within the user's timeline." or "Goal 'World Tour' is extremely ambitious and may conflict with the 'Buy a House' goal." If a goal seems impossible, state it directly.]
+
+PART 3: SYNTHESIZED REPORT FOR THE STRATEGIST
+User Profile Summary: A brief summary of the user (e.g., "A {age}-year-old with a {risk_profile} risk tolerance, a healthy savings rate, but significant high-interest debt.").
+
+Key Strengths to Leverage:
+[1-2 bullet points highlighting positive factors, like a high savings rate or low DTI.]
+
+Urgent Red Flags to Address:
+[1-2 bullet points on critical issues, like high-interest debt that needs immediate attention or an insufficient emergency fund.]
+
+Asset Composition Insights:
+[A brief comment on their current asset allocation. For example, "The user is heavily weighted in cash, indicating a conservative current stance despite an aggressive risk profile." or "The user has a good-sized equity portfolio, providing a strong base for future growth."]
 """
 analyst_prompt = PromptTemplate(
     template=analyst_template,
@@ -81,19 +103,42 @@ analyst_prompt = PromptTemplate(
 
 # --- Agent 2: The Strategist ---
 strategist_template = """
-You are a master financial strategist for the Indian market. You will receive an analysis from a financial analyst.
-Your job is to first critique the analysis for accuracy and then create two distinct, high-level financial strategies based on it.
-Pay close attention to the asset correlations provided in the analyst's summary to ensure proper diversification.
+You are a master financial strategist and tactician. You have received a detailed, quantitative report from your Analyst. Your sole purpose is to use this report to devise two distinct, high-level financial strategies.
 
-ANALYST'S SUMMARY (includes user data and market stats with correlations):
+Your task is threefold:
+Critique and Confirm: Briefly acknowledge the Analyst's report and confirm you are proceeding based on its key findings (especially the Red Flags and Goal Assessment).
+Devise the "Sentinel Plan": Create a conservative strategy that directly addresses the Analyst's red flags and aligns with a safety-first mindset.
+Devise the "Voyager Plan": Create a growth-oriented strategy that leverages the user's strengths and risk tolerance, while still acknowledging the realism check.
+
+CRITICAL INSTRUCTION: You must justify every strategic decision by explicitly referencing the metrics and observations from the Analyst's report. Do not output specific numbers or JSON. Your output is the core strategic logic for the Writer agent to follow.
+
+ANALYST'S REPORT:
 {analyst_summary}
 
-Based on this analysis, devise two strategies:
-1.  *Sentinel Plan (Safe & Steady):* A conservative plan focusing on debt reduction, building a strong emergency fund, and using low-risk, low-correlation investments for stability.
-2.  *Voyager Plan (Growth-Oriented):* A more aggressive plan that accepts calculated market risk for potentially higher returns and faster goal achievement, while still being diversified.
+BEGIN STRATEGIES
 
-For each plan, define the core philosophy and the primary action steps. Do not go into specific numerical projections yet.
-STRATEGIES:
+CONFIRMATION:
+[Start with a single sentence confirming you have reviewed the analyst's report. For example: "Analyst's report received and validated. Proceeding with strategy formulation based on the user's {Financial Health Score} and {Overall Goal Assessment}."]
+
+1. THE SENTINEL PLAN (A Strategy of SECURITY and Stability)
+
+Core Philosophy: [Explain the plan's philosophy in one sentence, directly referencing the user's situation. Example: "This strategy prioritizes eliminating the user's high-interest debt and building a robust emergency fund, creating a secure foundation before focusing on long-term, low-risk growth."]
+
+Key Priorities (in order):
+Debt Management: [State the strategic approach. Example: "Given the {DTI Ratio}, the primary focus is to aggressively pay down the high-interest debt identified by the Analyst."]
+Emergency Fund: [State the goal. Example: "Based on the Analyst's finding of {Emergency Fund Coverage} months, the next priority is to build this up to a 6-month cushion."]
+Investment Approach: [Define the investment style. Example: "Once the foundation is secure, begin steady, low-cost investing. The asset allocation should be heavily weighted towards low-volatility assets like bonds, using the market data's correlation matrix to ensure diversification away from equities."]
+Goal Alignment: [Comment on how this plan affects goals. Example: "This approach will likely result in longer timelines for the user's stated goals, aligning with the Analyst's 'Ambitious' feasibility assessment, but it significantly increases the probability of success."]
+
+2. THE VOYAGER PLAN (A Strategy of disciplined GROWTH)
+
+Core Philosophy: [Explain the plan's philosophy. Example: "This strategy leverages the user's {High Savings Rate/Aggressive Risk Profile} to pursue faster growth, accepting higher market volatility to potentially reach their goals sooner."]
+
+Key Priorities (in order):
+Debt Management: [State the approach. Example: "While still addressing the high-interest debt, this plan allocates a larger portion of the monthly savings towards immediate investment to capitalize on market returns."]
+Emergency Fund: [State the goal. Example: "A more agile 3-month emergency fund is sufficient, reflecting the user's high-risk tolerance."]
+Investment Approach: [Define the investment style. Example: "The asset allocation will be heavily weighted towards equities, as suggested by their historical high returns in the market data. A small, tactical allocation to high-risk assets like crypto can be considered, directly aligning with the user's risk profile."]
+Goal Alignment: [Comment on how this plan affects goals. Example: "This approach provides a more aggressive timeline for achieving the user's goals, but the user must be prepared for the higher volatility and potential drawdowns noted in the market analysis."]
 """
 strategist_prompt = PromptTemplate(
     template=strategist_template,
@@ -102,28 +147,46 @@ strategist_prompt = PromptTemplate(
 
 # --- Agent 3: The Writer ---
 writer_template = """
-You are a skilled financial writer. You will receive a user's data and two high-level strategies.
-Your task is to synthesize all this information into a final, detailed, and user-friendly financial plan.
-Calculate specific numbers for asset allocation percentages and projected goal timelines based on the strategies and user data.
+You are an expert financial writer and quantitative analyst. You have been given a user's complete financial profile and two high-level strategies from a master strategist. Your sole task is to translate these strategies into a detailed, user-friendly financial plan, performing specific calculations as instructed.
+
+CRITICAL INSTRUCTIONS:
+1. You MUST adhere strictly to the philosophy and action steps outlined in the provided strategies.
+2. You MUST calculate the projected goal timelines using the provided financial projection functions. Show your work.
+3. Your entire response MUST be a single, valid JSON object, with no other text, comments, or explanations before or after it.
 
 USER DATA:
 {user_data}
 
-HIGH-LEVEL STRATEGIES:
+HIGH-LEVEL STRATEGIES FROM THE STRATEGIST:
 {strategies}
 
-Based on everything, create a complete financial plan.
-Your entire response MUST be a single, valid JSON object, with no other text before or after it.
-The JSON object should follow this exact structure:
+FINANCIAL CALCULATION FUNCTIONS (for your internal use):
+def project_goal_timeline(target_amount, initial_investment, monthly_contribution, annual_return_rate):
+    # This function calculates the number of years to reach a financial goal.
+    # Use the avg_annual_return_percent from the user's market_stats.json for the annual_return_rate.
+    pass
+    
+BEGIN FINAL PLAN GENERATION
+
+Based on all the provided information, create the complete financial plan.
+
+For the projected_goal_timeline_years:
+1. Use the project_goal_timeline function.
+2. For the annual_return_rate, use the appropriate blended rate based on the asset allocation for each plan. For example, for the Sentinel plan, you might use a blended rate of (30% * equity_return) + (50% * bond_return) + (10% * commodities_return) + (10% * cash_return).
+
+For the recommendations:
+Translate the "Key Priorities" from the Strategist's report into 3-4 clear, actionable, and encouraging steps for the user.
+
+OUTPUT FORMAT (Strictly adhere to this JSON Structure):
 {{
   "sentinel_plan": {{
-    "summary": "A brief, encouraging summary of this safe plan.",
+    "summary": "A brief, encouraging summary of this safe plan, directly reflecting the Strategist's philosophy.",
     "asset_allocation": {{ "equities": "X%", "bonds": "Y%", "commodities": "Z%", "cash": "A%" }},
     "projected_goal_timeline_years": {{ "User's Goal Name 1": "X", "User's Goal Name 2": "Y" }},
     "recommendations": ["Detailed recommendation 1", "Detailed recommendation 2", "Detailed recommendation 3"]
   }},
   "voyager_plan": {{
-    "summary": "A brief, encouraging summary of this growth-oriented plan.",
+    "summary": "A brief, encouraging summary of this growth-oriented plan, directly reflecting the Strategist's philosophy.",
     "asset_allocation": {{ "equities": "X%", "bonds": "Y%", "crypto": "Z%", "cash": "A%" }},
     "projected_goal_timeline_years": {{ "User's Goal Name 1": "X", "User's Goal Name 2": "Y" }},
     "recommendations": ["Detailed recommendation 1", "Detailed recommendation 2", "Detailed recommendation 3"]
@@ -151,13 +214,19 @@ async def generate_plan_with_assembly_line(user_profile: dict):
     
     return final_plan_str
 
-# --- Agent 4: The Economic Forecaster ---
+# --- Agent 4: The Economic Forecaster (Personalized Storyteller) ---
+
 forecaster_template = """
-You are an expert economic forecaster for the Indian market. Your task is to generate 3 distinct, plausible economic scenarios for the next 5 years.
-One scenario should be optimistic (a bull run), one pessimistic (a slowdown), and one mixed/neutral.
+You are an expert economic forecaster and financial storyteller for the Indian market.
+Your task is to generate 3 distinct, plausible economic scenarios for the next 5 years based on the user's primary financial goal.
+One scenario must be optimistic, one pessimistic, and one mixed/neutral.
+
+*CRITICAL INSTRUCTION:* When writing each narrative, you MUST subtly weave in a reference to how this economic climate might affect the user's primary goal.
+
+*USER'S PRIMARY GOAL:* {user_goal}
 
 For EACH of the 3 scenarios, you MUST provide two things:
-1. A short, creative 'narrative' paragraph describing the economic story.
+1. A short, creative 'narrative' paragraph describing the economic story and its potential impact on the user's goal.
 2. A structured JSON object with these exact keys and estimated annual percentage values: {{"avg_equity_return": X, "avg_bond_return": Y, "avg_inflation": Z}}
 
 Your entire response MUST be a single, valid JSON object, with no other text before or after it.
@@ -166,65 +235,106 @@ The JSON object should follow this exact structure:
   "scenarios": [
     {{
       "name": "The Optimistic Scenario",
-      "narrative": "A descriptive story of a booming economy...",
+      "narrative": "A descriptive story of a booming economy that could accelerate your goal of {user_goal}...",
       "parameters": {{ "avg_equity_return": 18.0, "avg_bond_return": 7.5, "avg_inflation": 4.5 }}
     }},
     {{
       "name": "The Pessimistic Scenario",
-      "narrative": "A descriptive story of a sluggish economy...",
+      "narrative": "A descriptive story of a sluggish economy that might pose challenges to your goal of {user_goal}...",
       "parameters": {{ "avg_equity_return": 2.0, "avg_bond_return": 6.0, "avg_inflation": 8.0 }}
     }},
     {{
       "name": "The Neutral Scenario",
-      "narrative": "A descriptive story of a mixed economy...",
+      "narrative": "A descriptive story of a mixed economy with specific opportunities and risks for your goal of {user_goal}...",
       "parameters": {{ "avg_equity_return": 9.0, "avg_bond_return": 6.5, "avg_inflation": 6.0 }}
     }}
   ]
 }}
 """
-forecaster_prompt = PromptTemplate.from_template(forecaster_template)
+forecaster_prompt = PromptTemplate(
+    template=forecaster_template,
+    input_variables=["user_goal"]
+)
 
 def project_goal_timeline(target_amount, initial_investment, monthly_contribution, annual_return_rate):
+    """
+    Calculates the number of years to reach a financial goal.
+    (This function is unchanged)
+    """
     if monthly_contribution <= 0 and initial_investment < target_amount:
         return float('inf')
 
     if annual_return_rate <= 0:
         if monthly_contribution <= 0:
             return float('inf')
+        # Avoid division by zero if target is already met
+        if (target_amount - initial_investment) <= 0:
+            return 0.0
         return (target_amount - initial_investment) / (monthly_contribution * 12)
 
     monthly_rate = (1 + annual_return_rate) ** (1/12) - 1
     
-    if abs(monthly_rate) < 1e-9:
+    if abs(monthly_rate) < 1e-9: # Handles cases where annual_return_rate is extremely small
         if monthly_contribution <= 0:
             return float('inf')
+        if (target_amount - initial_investment) <= 0:
+            return 0.0
         return (target_amount - initial_investment) / (monthly_contribution * 12)
 
-    current_value = float(initial_investment)
-    months = 0
-    while current_value < target_amount:
-        interest = current_value * monthly_rate
-        current_value += interest + monthly_contribution
-        months += 1
-        if months > 1200:
-            return float('inf')
-            
+    # Formula for number of periods (months) in an annuity
+    # n = log( (FV*r + PMT) / (P*r + PMT) ) / log(1+r)
+    try:
+        # We add a small epsilon to avoid log(0) if PMT is 0 and FV equals P
+        numerator = math.log((target_amount * monthly_rate + monthly_contribution + 1e-9))
+        denominator = math.log((initial_investment * monthly_rate + monthly_contribution + 1e-9))
+        log_1_plus_r = math.log(1 + monthly_rate)
+        
+        if log_1_plus_r == 0: # Should be caught by earlier check, but as a safeguard
+             return float('inf')
+
+        months = (numerator - denominator) / log_1_plus_r
+    except (ValueError, ZeroDivisionError):
+        # Fallback to iteration if formula fails (e.g., due to negative logs)
+        current_value = float(initial_investment)
+        months = 0
+        while current_value < target_amount:
+            interest = current_value * monthly_rate
+            current_value += interest + monthly_contribution
+            months += 1
+            if months > 1200: # 100 years
+                return float('inf')
+        return round(months / 12, 1)
+
     return round(months / 12, 1)
 
+
 async def run_economic_forecaster(user_profile: dict):
-    scenarios_str = await invoke_llm_with_retry(forecaster_prompt, {})
+    """
+    Runs the personalized economic forecaster agent.
+    """
+    # Extract the user's primary goal (we'll assume the first one listed)
+    primary_goal = user_profile['goals'][0]['name'] if user_profile['goals'] else "achieving their financial targets"
+
+    # Invoke the LLM with the user's goal for personalization
+    scenarios_str = await invoke_llm_with_retry(forecaster_prompt, {"user_goal": primary_goal})
     
+    # Robust JSON parsing
     start_index = scenarios_str.find('{')
     end_index = scenarios_str.rfind('}') + 1
+    if start_index == -1 or end_index == 0:
+        raise ValueError("Forecaster agent returned invalid data (no JSON object found).")
     json_str = scenarios_str[start_index:end_index]
     scenarios_data = json.loads(json_str)
 
+    # Calculate the user's available monthly savings for investment
     monthly_savings = user_profile['monthly_income'] - user_profile['monthly_expenses'] - user_profile['liabilities']['loans_emi']
     initial_investment = user_profile['assets']['equity_investments'] + user_profile['assets']['other_investments']
 
+    # Loop through each AI-generated scenario and calculate the new goal timelines
     for scenario in scenarios_data['scenarios']:
         params = scenario['parameters']
-        annual_return = params['avg_equity_return'] / 100
+        # Create a blended return rate based on a moderate (60/40) portfolio for simulation
+        blended_return = (params['avg_equity_return'] * 0.60 + params['avg_bond_return'] * 0.40) / 100
 
         projected_timelines = {}
         for goal in user_profile['goals']:
@@ -232,7 +342,7 @@ async def run_economic_forecaster(user_profile: dict):
                 target_amount=float(goal['target_amount']),
                 initial_investment=float(initial_investment),
                 monthly_contribution=float(monthly_savings),
-                annual_return_rate=float(annual_return)
+                annual_return_rate=float(blended_return)
             )
             projected_timelines[goal['name']] = "More than 100 years" if math.isinf(timeline) else f"{timeline} years"
         
@@ -240,26 +350,35 @@ async def run_economic_forecaster(user_profile: dict):
         
     return scenarios_data
 
+
 # --- Agent 5: The Context-Aware Q&A Agent ---
 qa_template = """
-You are FinPilot, an expert and friendly financial advisor. A user is asking a follow-up question about the financial plan you have already created for them.
-Your answer must be based ONLY on the context provided below. Be concise, helpful, and reassuring. Do not make up any information.
+You are FinPilot, an expert, patient, and educational financial co-pilot.
+A user is asking a follow-up question about the financial plan you have already created for them.
+Your goal is to provide high-quality, reasonable, and informative answers that build the user's confidence and financial literacy.
 
-*CONTEXT - USER'S ORIGINAL PROFILE:*
+Core Instructions:
+1.  Strict Context Adherence: Your entire answer MUST be based ONLY on the User's Profile, the Generated Plan, and the Chat History provided below. Do not make up any external information.
+2.  Educational Mandate: If the user asks for a definition of a financial term (e.g., 'diversification', 'asset allocation', 'index fund'), explain it in simple, layman's terms, perhaps using a short analogy.
+3.  Justification Mandate: When the user asks "why" a recommendation was made, you MUST deduce the reasoning by linking their specific profile data (e.g., age, risk profile, goals, high-interest debt) to the recommendation using general financial principles. You must act as if you were the original strategist who made these decisions.
+4.  Safety and Boundaries: NEVER give specific stock, bond, or product recommendations (e.g., "buy Reliance stock"). Only discuss asset classes and strategies (e.g., "invest in diversified equity mutual funds"). If asked for a specific product, politely decline and explain that you can only provide strategic guidance.
+5.  No Deflection: NEVER tell the user to "look up the internet" or that you cannot answer. Always provide a helpful response based on the provided context and your embedded financial knowledge.
+
+CONTEXT - USER'S ORIGINAL PROFILE:
 {user_profile}
 
-*CONTEXT - THE GENERATED PLAN:*
+CONTEXT - THE GENERATED PLAN:
 {generated_plan}
 
-*CONTEXT - RECENT CHAT HISTORY:*
+CONTEXT - RECENT CHAT HISTORY:
 {chat_history}
 
 Based on all of this context, answer the user's question.
 
-*USER'S QUESTION:*
+USER'S QUESTION:
 {new_question}
 
-*YOUR ANSWER:*
+YOUR ANSWER:
 """
 qa_prompt = PromptTemplate.from_template(qa_template)
 
