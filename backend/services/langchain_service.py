@@ -85,7 +85,7 @@ Goal-Specific Notes:
 [For each goal, provide a brief comment. For example: "Goal 'Buy a Car' appears realistic within the user's timeline." or "Goal 'World Tour' is extremely ambitious and may conflict with the 'Buy a House' goal." If a goal seems impossible, state it directly.]
 
 PART 3: SYNTHESIZED REPORT FOR THE STRATEGIST
-User Profile Summary: A brief summary of the user (e.g., "A {age}-year-old with a {risk_profile} risk tolerance, a healthy savings rate, but significant high-interest debt.").
+User Profile Summary: A brief summary of the user (e.g., "A {{age}} -year-old with a {{risk_profile}} risk tolerance, a healthy savings rate, but significant high-interest debt.").
 
 Key Strengths to Leverage:
 [1-2 bullet points highlighting positive factors, like a high savings rate or low DTI.]
@@ -98,7 +98,7 @@ Asset Composition Insights:
 """
 analyst_prompt = PromptTemplate(
     template=analyst_template,
-    input_variables=["user_data", "market_stats"]
+    input_variables=['market_stats', 'user_data']
 )
 
 # --- Agent 2: The Strategist ---
@@ -118,21 +118,21 @@ ANALYST'S REPORT:
 BEGIN STRATEGIES
 
 CONFIRMATION:
-[Start with a single sentence confirming you have reviewed the analyst's report. For example: "Analyst's report received and validated. Proceeding with strategy formulation based on the user's {Financial Health Score} and {Overall Goal Assessment}."]
+[Start with a single sentence confirming you have reviewed the analyst's report. For example: "Analyst's report received and validated. Proceeding with strategy formulation based on the user's {{Financial Health Score}} and {{Overall Goal Assessment}}."]
 
 1. THE SENTINEL PLAN (A Strategy of SECURITY and Stability)
 
 Core Philosophy: [Explain the plan's philosophy in one sentence, directly referencing the user's situation. Example: "This strategy prioritizes eliminating the user's high-interest debt and building a robust emergency fund, creating a secure foundation before focusing on long-term, low-risk growth."]
 
 Key Priorities (in order):
-Debt Management: [State the strategic approach. Example: "Given the {DTI Ratio}, the primary focus is to aggressively pay down the high-interest debt identified by the Analyst."]
-Emergency Fund: [State the goal. Example: "Based on the Analyst's finding of {Emergency Fund Coverage} months, the next priority is to build this up to a 6-month cushion."]
+Debt Management: [State the strategic approach. Example: "Given the {{DTI Ratio}}, the primary focus is to aggressively pay down the high-interest debt identified by the Analyst."]
+Emergency Fund: [State the goal. Example: "Based on the Analyst's finding of {{Emergency Fund Coverage}} months, the next priority is to build this up to a 6-month cushion."]
 Investment Approach: [Define the investment style. Example: "Once the foundation is secure, begin steady, low-cost investing. The asset allocation should be heavily weighted towards low-volatility assets like bonds, using the market data's correlation matrix to ensure diversification away from equities."]
 Goal Alignment: [Comment on how this plan affects goals. Example: "This approach will likely result in longer timelines for the user's stated goals, aligning with the Analyst's 'Ambitious' feasibility assessment, but it significantly increases the probability of success."]
 
 2. THE VOYAGER PLAN (A Strategy of disciplined GROWTH)
 
-Core Philosophy: [Explain the plan's philosophy. Example: "This strategy leverages the user's {High Savings Rate/Aggressive Risk Profile} to pursue faster growth, accepting higher market volatility to potentially reach their goals sooner."]
+Core Philosophy: [Explain the plan's philosophy. Example: "This strategy leverages the user's {{High Savings Rate/Aggressive Risk Profile}} to pursue faster growth, accepting higher market volatility to potentially reach their goals sooner."]
 
 Key Priorities (in order):
 Debt Management: [State the approach. Example: "While still addressing the high-interest debt, this plan allocates a larger portion of the monthly savings towards immediate investment to capitalize on market returns."]
@@ -221,9 +221,9 @@ You are an expert economic forecaster and financial storyteller for the Indian m
 Your task is to generate 3 distinct, plausible economic scenarios for the next 5 years based on the user's primary financial goal.
 One scenario must be optimistic, one pessimistic, and one mixed/neutral.
 
-*CRITICAL INSTRUCTION:* When writing each narrative, you MUST subtly weave in a reference to how this economic climate might affect the user's primary goal.
+CRITICAL INSTRUCTION: When writing each narrative, you MUST subtly weave in a reference to how this economic climate might affect the user's primary goal.
 
-*USER'S PRIMARY GOAL:* {user_goal}
+USER'S PRIMARY GOAL: {user_goal}
 
 For EACH of the 3 scenarios, you MUST provide two things:
 1. A short, creative 'narrative' paragraph describing the economic story and its potential impact on the user's goal.
