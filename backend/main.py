@@ -1,16 +1,19 @@
 import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-# CORRECTED: Typo fixed from 'pantic' to 'pydantic'
 from pydantic import BaseModel, Field
 from typing import List, Dict
+
+# --- Import ALL services, including our new evaluation_service ---
 from services.langchain_service import (
     generate_plan_with_assembly_line,
     run_economic_forecaster,
     run_qa_agent
 )
+from services.evaluation_service import evaluate_plan
 
 # --- Pydantic Models (Data Contracts) ---
+
 class Asset(BaseModel):
     cash_equivalents: float = Field(..., ge=0)
     equity_investments: float = Field(..., ge=0)
@@ -48,11 +51,17 @@ class ChatPayload(BaseModel):
     chatHistory: List[ChatMessage]
     newQuestion: str
 
+# --- NEW: Pydantic Model for the /evaluate-plan endpoint ---
+class EvaluationPayload(BaseModel):
+    userProfile: UserProfile
+    generatedPlan: Dict
+
 # --- FastAPI Application Setup ---
 app = FastAPI(
     title="FinPilot API",
     description="The AI-powered backend for FinPilot, featuring a multi-agent financial planning system."
 )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -62,6 +71,7 @@ app.add_middleware(
 )
 
 # --- API Endpoints ---
+
 @app.get("/", tags=["Root"])
 async def read_root():
     return {"status": "FinPilot API is running!"}
@@ -105,3 +115,20 @@ async def chat_with_plan_endpoint(payload: ChatPayload):
     except Exception as e:
         print(f"An error occurred during chat: {e}")
         raise HTTPException(status_code=500, detail="Failed to get chat response.")
+
+# --- NEW: API Endpoint for Plan Evaluation ---
+@app.post("/evaluate-plan", tags=["Evaluation"])
+async def evaluate_plan_endpoint(payload: EvaluationPayload):
+    """
+    Receives a user profile and a generated plan, and triggers the evaluation service.
+    """
+    print("Received request for /evaluate-plan")
+    try:
+        evaluation_report = await evaluate_plan(
+            user_profile=payload.userProfile.dict(),
+            generated_plan=payload.generatedPlan
+        )
+        return evaluation_report
+    except Exception as e:
+        print(f"An error occurred during evaluation: {e}")
+        raise HTTPException(status_code=500, detail="Failed to evaluate plan.")

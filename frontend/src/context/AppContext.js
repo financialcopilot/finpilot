@@ -26,11 +26,14 @@ export const AppProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // --- NEW STATE FOR INTERACTIVE FEATURES ---
   const [simulationResults, setSimulationResults] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [isChatting, setIsChatting] = useState(false);
+
+  // --- NEW STATE FOR EVALUATION ---
+  const [evaluationResult, setEvaluationResult] = useState(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
 
 
   const nextStep = () => setActiveStep((prev) => prev + 1);
@@ -65,7 +68,6 @@ export const AppProvider = ({ children }) => {
     setUserInput(prev => ({ ...prev, risk_profile_answers: newAnswers }));
   };
 
-  // --- NEW HANDLERS FOR CHAT ---
   const addUserMessageToChat = (message) => {
     setChatHistory(prev => [...prev, { role: 'user', content: message }]);
   };
@@ -89,7 +91,6 @@ export const AppProvider = ({ children }) => {
     setIsLoading,
     error,
     setError,
-    // --- EXPORT NEW STATE AND HANDLERS ---
     simulationResults,
     setSimulationResults,
     isSimulating,
@@ -99,6 +100,11 @@ export const AppProvider = ({ children }) => {
     setIsChatting,
     addUserMessageToChat,
     addAssistantMessageToChat,
+    // --- EXPORT NEW STATE AND SETTERS ---
+    evaluationResult,
+    setEvaluationResult,
+    isEvaluating,
+    setIsEvaluating,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

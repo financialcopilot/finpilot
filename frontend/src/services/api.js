@@ -44,3 +44,16 @@ export const chatWithAgent = async (chatPayload) => {
     handleApiError(error);
   }
 };
+
+// --- NEW API FUNCTION FOR EVALUATION ---
+export const evaluateGeneratedPlan = async (userProfile, generatedPlan) => {
+    try {
+        const payload = { userProfile, generatedPlan };
+        const response = await axios.post(`${API_URL}/evaluate-plan`, payload);
+        return response.data;
+    } catch (error) {
+        // We will handle the error gracefully in the component
+        // but still throw it for console logging.
+        handleApiError(error);
+    }
+};
