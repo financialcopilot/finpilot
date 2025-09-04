@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { Box, Grid, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper } from '@mui/material';
 import PlanCard from './PlanCard';
 import SimulationTabs from './SimulationTabs';
 import ChatInterface from './ChatInterface';
@@ -18,7 +18,6 @@ const PlanDashboard = () => {
   // --- NEW: useEffect to trigger evaluation after plan is generated ---
   useEffect(() => {
     const runEvaluation = async () => {
-      // Ensure we only run this once when the plan is first generated
       if (generatedPlan && userInput) {
         setIsEvaluating(true);
         setEvaluationResult(null); // Clear previous results
@@ -27,7 +26,6 @@ const PlanDashboard = () => {
           setEvaluationResult(result);
         } catch (error) {
           console.error("Failed to fetch plan evaluation:", error);
-          // Optionally, set an error state for the evaluation component
           setEvaluationResult({ error: "Could not retrieve plan analysis." });
         } finally {
           setIsEvaluating(false);
@@ -36,35 +34,70 @@ const PlanDashboard = () => {
     };
 
     runEvaluation();
-  }, [generatedPlan, userInput, setEvaluationResult, setIsEvaluating]); // Dependencies array ensures this runs only when a new plan is created
+  }, [generatedPlan, userInput, setEvaluationResult, setIsEvaluating]);
 
   if (!generatedPlan) {
     return <Typography>No plan generated yet.</Typography>;
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
+      {/* Header */}
       <Paper elevation={3} sx={{ p: 3, mb: 4, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom sx={{ color: '#9e81d7ff' }}>
           Your Personalized Financial Plans, {userInput.name}!
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Here are two distinct strategies our AI has crafted based on your unique profile and goals.
         </Typography>
       </Paper>
-      
+
       {/* --- RENDER THE NEW EVALUATION COMPONENT --- */}
-      <EvaluationDisplay />
+      <Box sx={{ mb: 4 }}>
+        <EvaluationDisplay />
+      </Box>
 
-      <Grid container spacing={4} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={6}>
+      {/* Plans Section */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 4,
+          width: '100%',
+        }}
+      >
+        {/* Sentinel Plan */}
+        <Box
+          sx={{
+            flex: 1,
+            backgroundColor: '#9e81d7ff',
+            p: 0.2,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'stretch',
+            boxShadow: '0 0 6px rgba(158, 129, 215, 0.7)',
+          }}
+        >
           <PlanCard plan={generatedPlan.sentinel_plan} title="The Sentinel Plan" />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <PlanCard plan={generatedPlan.voyager_plan} title="The Voyager Plan" />
-        </Grid>
-      </Grid>
+        </Box>
 
+        {/* Voyager Plan */}
+        <Box
+          sx={{
+            flex: 1,
+            backgroundColor: '#9e81d7ff',
+            p: 0.2,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'stretch',
+            boxShadow: '0 0 6px rgba(158, 129, 215, 0.7)',
+          }}
+        >
+          <PlanCard plan={generatedPlan.voyager_plan} title="The Voyager Plan" />
+        </Box>
+      </Box>
+
+      {/* Simulation + Chat */}
       <SimulationTabs />
       <ChatInterface />
     </Box>

@@ -26,22 +26,28 @@ export const AppProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // --- STATE FOR SIMULATION ---
   const [simulationResults, setSimulationResults] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
+
+  // --- STATE FOR CHAT ---
   const [chatHistory, setChatHistory] = useState([]);
   const [isChatting, setIsChatting] = useState(false);
 
-  // --- NEW STATE FOR EVALUATION ---
+  // --- STATE FOR EVALUATION ---
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
 
-
+  // --- STEP HANDLERS ---
   const nextStep = () => setActiveStep((prev) => prev + 1);
   const prevStep = () => setActiveStep((prev) => prev - 1);
+
+  // --- INPUT HANDLERS ---
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserInput((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleNestedInputChange = (section, event) => {
     const { name, value } = event.target;
     setUserInput((prev) => ({
@@ -49,32 +55,45 @@ export const AppProvider = ({ children }) => {
       [section]: { ...prev[section], [name]: value },
     }));
   };
+
   const handleGoalChange = (index, event) => {
     const { name, value } = event.target;
     const newGoals = [...userInput.goals];
     newGoals[index][name] = value;
     setUserInput((prev) => ({ ...prev, goals: newGoals }));
   };
+
   const addGoal = () => {
     setUserInput((prev) => ({
       ...prev,
       goals: [...prev.goals, { name: '', target_amount: '', timeline_years: '' }],
     }));
   };
+
+  const removeGoal = (index) => {
+    setUserInput((prev) => ({
+      ...prev,
+      goals: prev.goals.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleRiskChange = (questionIndex, event) => {
     const { value } = event.target;
     const newAnswers = [...userInput.risk_profile_answers];
     newAnswers[questionIndex] = parseInt(value, 10);
-    setUserInput(prev => ({ ...prev, risk_profile_answers: newAnswers }));
+    setUserInput((prev) => ({ ...prev, risk_profile_answers: newAnswers }));
   };
 
+  // --- CHAT HANDLERS ---
   const addUserMessageToChat = (message) => {
-    setChatHistory(prev => [...prev, { role: 'user', content: message }]);
-  };
-  const addAssistantMessageToChat = (message) => {
-    setChatHistory(prev => [...prev, { role: 'assistant', content: message }]);
+    setChatHistory((prev) => [...prev, { role: 'user', content: message }]);
   };
 
+  const addAssistantMessageToChat = (message) => {
+    setChatHistory((prev) => [...prev, { role: 'assistant', content: message }]);
+  };
+
+  // --- VALUE PROVIDED TO CONTEXT ---
   const value = {
     activeStep,
     nextStep,
@@ -84,6 +103,7 @@ export const AppProvider = ({ children }) => {
     handleNestedInputChange,
     handleGoalChange,
     addGoal,
+    removeGoal,
     handleRiskChange,
     generatedPlan,
     setGeneratedPlan,
@@ -100,7 +120,7 @@ export const AppProvider = ({ children }) => {
     setIsChatting,
     addUserMessageToChat,
     addAssistantMessageToChat,
-    // --- EXPORT NEW STATE AND SETTERS ---
+    // --- EVALUATION STATE ---
     evaluationResult,
     setEvaluationResult,
     isEvaluating,

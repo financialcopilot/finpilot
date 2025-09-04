@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext,useState } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { generatePlan } from '../../services/api';
 import {
@@ -16,20 +16,35 @@ import {
 const Step4Risk = () => {
   const { prevStep, userInput, handleRiskChange, setIsLoading, setError, setGeneratedPlan } = useContext(AppContext);
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    let newErrors = {};
+    if (!userInput.risk_profile_answers[0]) newErrors.q1 = "Please select an answer";
+    if (!userInput.risk_profile_answers[1]) newErrors.q2 = "Please select an answer";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
+
     // --- STEP 1: VALIDATION ---
-    // Check for empty fields before submitting
-    if (!userInput.name || !userInput.age || !userInput.monthly_income || !userInput.monthly_expenses ||
-        !userInput.assets.cash_equivalents || !userInput.assets.equity_investments ||
-        !userInput.liabilities.high_interest_debt || !userInput.liabilities.loans_emi ||
-        userInput.goals.some(g => !g.name || !g.target_amount || !g.timeline_years) ||
-        userInput.risk_profile_answers.includes(null)) {
-          alert("Please fill out all required fields in every step before generating a plan.");
-          return;
-    }
-      
+    if (!validate()) return;
+
     setIsLoading(true);
     setError(null);
+    // Check for empty fields before submitting
+    // if (!userInput.name || !userInput.age || !userInput.monthly_income || !userInput.monthly_expenses ||
+    //     !userInput.assets.cash_equivalents || !userInput.assets.equity_investments ||
+    //     !userInput.liabilities.high_interest_debt || !userInput.liabilities.loans_emi ||
+    //     userInput.goals.some(g => !g.name || !g.target_amount || !g.timeline_years) ||
+    //     userInput.risk_profile_answers.includes(null)) {
+    //       alert("Please fill out all required fields in every step before generating a plan.");
+    //       return;
+    // }
+      
+    // setIsLoading(true);
+    // setError(null);
     try {
       // --- STEP 2: DATA CLEANUP AND TYPE CONVERSION ---
       const payload = {
@@ -68,7 +83,7 @@ const Step4Risk = () => {
   return (
     <Stack spacing={4}>
       <Typography variant="h5" align="center" gutterBottom>
-        Step 4: Your Risk Profile
+         Your Risk Profile
       </Typography>
 
       <FormControl component="fieldset">
@@ -82,6 +97,7 @@ const Step4Risk = () => {
           <FormControlLabel value="2" control={<Radio />} label="Do nothing and wait (Medium Risk)" />
           <FormControlLabel value="3" control={<Radio />} label="Invest more (High Risk)" />
         </RadioGroup>
+        {errors.q1 && <Typography color="error">{errors.q1}</Typography>}
       </FormControl>
 
       <FormControl component="fieldset">
@@ -95,6 +111,7 @@ const Step4Risk = () => {
           <FormControlLabel value="2" control={<Radio />} label="High chance of 12% return, small chance of 2% loss (Medium Risk)" />
           <FormControlLabel value="3" control={<Radio />} label="50/50 chance of 25% return or 10% loss (High Risk)" />
         </RadioGroup>
+        {errors.q2 && <Typography color="error">{errors.q2}</Typography>}
       </FormControl>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
